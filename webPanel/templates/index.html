@@ -31,11 +31,11 @@
     }
 
     .picture-frame {
-        {#background-color: red;#}
-        height: 80%;
+    {#background-color: red;#} height: 80%;
         width: 100%;
         text-align: center;
     }
+
     .picture-frame img {
         max-width: 100%;
         max-height: 100%;
@@ -72,10 +72,9 @@
     <div class="row w-100 no-gutters">
         <div class="col-8 left-frame">
             <div class="picture-frame">
-                <img src="{{ url_for('static', filename='img.jpg') }}" class="img-fluid" alt="img"/>
-                {#<h1 data-bind="text: time"></h1>#}
+                <img data-bind="attr: {src: mainImage}" src="" class="img-fluid" alt="img"/>
             </div>
-            <div class="first-tag"> AAAAAAAAAAAAA</div>
+            <div class="first-tag" data-bind="text: mainTag"></div>
         </div>
         <div class="col-4 right-frame">
             <div class="tag-list"></div>
@@ -102,30 +101,30 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
         integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 <script type="text/javascript" charset="utf-8">
-    /*var socket = io();
+    /* Start socket conn  */
+    var socket = io();
     socket.on('connect', function () {
         socket.emit('connected', {data: 'I\'m connected!'});
     });
-    socket.on('msg', (msg) => {
-        console.log(msg);
-    });*/
 
-    // Here's my data model
-    var ViewModel = function () {
-        var socket = io();
-        var me = this;
-        me.time = 0;
-        socket.on('connect', function () {
-            socket.emit('connected', {data: 'I\'m connected!'});
-        });
-
-        socket.on('msg', (msg) => {
-            console.log(msg);
-            me.time = msg.data.epoch_time;
-        });
+    /* Set KO model */
+    var ViewModel = {
+        mainImage: ko.observable(''),
+        mainTag: ko.observable('Placa'),
+        tagList: ko.observableArray([])
     };
 
-    ko.applyBindings(new ViewModel()); // This makes Knockout get to work
+    /* Bind model to documento */
+    $(function () {
+        ko.applyBindings(ViewModel);
+    });
+
+    /* Socket handler for new image and values binding */
+    socket.on('new_tag', function (data) {
+        console.log(data);
+        ViewModel.mainTag(data.data.results[0].plate);
+        ViewModel.mainImage(data.img);
+    });
 
 </script>
 </body>

@@ -20,9 +20,9 @@ def hello_world():
 
 @app.route('/process_image', methods=['POST'])
 def processImage():
-    imgName = saveTempImage(request.json['image'])
+    imgName, imgData = saveTempImage(request.json['image'])
     output = client.containers.run('openalpr/openalpr', '-c eu -j ' + imgName, remove=True, volumes={getcwd(): {'bind': '/data', 'mode': 'ro'}})
-    socketio.emit('msg', {'data': json.loads(output)}, broadcast=True)
+    socketio.emit('new_tag', {'data': json.loads(output), 'img': imgData}, broadcast=True)
     return str(output)
 
 
@@ -44,21 +44,22 @@ def handle_connect_event(jsonArg):
 
 def saveTempImage(encodedImage):
     meta = encodedImage.split(',')
+    imgBase64 = encodedImage
     imgName = imgTempPath + 'img'
 
     # Get file extension
     if meta.__len__() == 2:
-        encodedImage = meta[1]
+        imgBase64 = meta[1]
         ext = '.' + meta[0].split(';')[0].split('/')[1]
         imgName += ext
 
     # Decode and save image
-    imgdata = base64.b64decode(encodedImage)
+    imgdata = base64.b64decode(imgBase64)
     with open(imgName, 'wb') as f:
         f.write(imgdata)
 
     # Return image name
-    return imgName
+    return imgName, encodedImage
 
 
 if __name__ == '__main__':
