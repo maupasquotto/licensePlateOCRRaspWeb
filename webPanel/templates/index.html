@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Title -->
+    <title>Leitura de placas</title>
+</head>
+<body>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    html, body, .container-fluid > .row {
+        height: 100%;
+    }
+
+    .container-fluid {
+        background-color: black;
+        height: 100%;
+    }
+
+    .picture-frame {
+        {#background-color: red;#}
+        height: 80%;
+        width: 100%;
+        text-align: center;
+    }
+    .picture-frame img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .first-tag {
+        background-color: #000000;
+        height: 20%;
+        width: 100%;
+        text-align: center;
+        color: #FFFFFF;
+        font-size: 83px;
+    }
+
+    .left-frame, .right-frame {
+        position: relative;
+        float: left;
+    }
+
+    .tag-list {
+        background-color: #23cb5f;
+        width: 100%;
+        height: 60%;
+    }
+
+    .btn {
+        background-color: #cbb74b;
+        width: 100%;
+        height: 40%;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row w-100 no-gutters">
+        <div class="col-8 left-frame">
+            <div class="picture-frame">
+                <img src="{{ url_for('static', filename='img.jpg') }}" class="img-fluid" alt="img"/>
+                {#<h1 data-bind="text: time"></h1>#}
+            </div>
+            <div class="first-tag"> AAAAAAAAAAAAA</div>
+        </div>
+        <div class="col-4 right-frame">
+            <div class="tag-list"></div>
+            <div class="btn"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.0/knockout-min.js"
+        integrity="sha256-Tjl7WVgF1hgGMgUKZZfzmxOrtoSf8qltZ9wMujjGNQk=" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+<!-- Socket IO JS -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
+        integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+<script type="text/javascript" charset="utf-8">
+    /*var socket = io();
+    socket.on('connect', function () {
+        socket.emit('connected', {data: 'I\'m connected!'});
+    });
+    socket.on('msg', (msg) => {
+        console.log(msg);
+    });*/
+
+    // Here's my data model
+    var ViewModel = function () {
+        var socket = io();
+        var me = this;
+        me.time = 0;
+        socket.on('connect', function () {
+            socket.emit('connected', {data: 'I\'m connected!'});
+        });
+
+        socket.on('msg', (msg) => {
+            console.log(msg);
+            me.time = msg.data.epoch_time;
+        });
+    };
+
+    ko.applyBindings(new ViewModel()); // This makes Knockout get to work
+
+</script>
+</body>
+</html>
