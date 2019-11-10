@@ -31,9 +31,13 @@
     }
 
     .picture-frame {
-    {#background-color: red;#} height: 80%;
+        height: 80%;
         width: 100%;
         text-align: center;
+
+        display: flex;
+        align-items: center; /* Vertical center alignment */
+        justify-content: center; /* Horizontal center alignment */
     }
 
     .picture-frame img {
@@ -53,18 +57,42 @@
     .left-frame, .right-frame {
         position: relative;
         float: left;
+        color: #FFFFFF;
+        height: 100%;
     }
 
     .tag-list {
-        background-color: #23cb5f;
         width: 100%;
         height: 60%;
+        overflow: auto;
     }
 
-    .btn {
-        background-color: #cbb74b;
+    .response {
         width: 100%;
         height: 40%;
+    }
+
+    .btnResponseDiv {
+        float: left;
+        height: 100%;
+        text-align: center;
+        vertical-align: center;
+        font-size: 50px;
+
+        display: flex;
+        align-items: center; /* Vertical center alignment */
+        justify-content: center; /* Horizontal center alignment */
+
+    }
+
+    .btnYes span {
+        color: #54cb36;
+        cursor: pointer;
+    }
+
+    .btnNo span {
+        color: #ff0000;
+        cursor: pointer;
     }
 </style>
 
@@ -72,13 +100,40 @@
     <div class="row w-100 no-gutters">
         <div class="col-8 left-frame">
             <div class="picture-frame">
-                <img data-bind="attr: {src: mainImage}" src="" class="img-fluid" alt="img"/>
+                <!-- ko if: mainImage() === "" -->
+                    <span class="imgAlert">Waiting for a new image</span>
+                <!-- /ko -->
+                <!-- ko if: mainImage() != "" -->
+                    <img data-bind="if: mainImage, attr: {src: mainImage}" src="" class="img-fluid" alt="img"/>
+                <!-- /ko -->
             </div>
             <div class="first-tag" data-bind="text: mainTag"></div>
         </div>
         <div class="col-4 right-frame">
-            <div class="tag-list"></div>
-            <div class="btn"></div>
+            <div class="tag-list">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">License Plate</th>
+                        <th scope="col">Precision</th>
+                    </tr>
+                    </thead>
+                    <tbody data-bind="foreach: tagList">
+                    <tr>
+                        <th scope="row" data-bind="text: $index() + 1"></th>
+                        <td data-bind="text: plate"></td>
+                        <td data-bind="text: confidence.toFixed(2) + ' %'"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="response">
+                <!-- ko if: mainImage() != "" -->
+                    <div class="btnResponseDiv btnYes w-50" data-bind="click: sendResponse(1)"><span>Yes</span></div>
+                    <div class="btnResponseDiv btnNo w-50" data-bind="click: sendResponse(0)"><span>No</span></div>
+                <!-- /ko -->
+            </div>
         </div>
     </div>
 </div>
@@ -110,8 +165,11 @@
     /* Set KO model */
     var ViewModel = {
         mainImage: ko.observable(''),
-        mainTag: ko.observable('Placa'),
-        tagList: ko.observableArray([])
+        mainTag: ko.observable('License plate'),
+        tagList: ko.observableArray([]),
+        sendResponse: function (resp) {
+            socket.emit('webResponse', {access: resp});
+        }
     };
 
     /* Bind model to documento */
@@ -122,8 +180,13 @@
     /* Socket handler for new image and values binding */
     socket.on('new_tag', function (data) {
         console.log(data);
+        if (!data.hasOwnProperty('data') || !data.data.hasOwnProperty('results') || data.data.results.length !== 1) {
+            console.log('The data captured is not compatible.');
+            return;
+        }
         ViewModel.mainTag(data.data.results[0].plate);
         ViewModel.mainImage(data.img);
+        ViewModel.tagList(data.data.results[0].candidates);
     });
 
 </script>

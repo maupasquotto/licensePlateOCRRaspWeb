@@ -18,17 +18,12 @@ def hello_world():
     return render_template('index.html')
 
 
-@app.route('/process_image', methods=['POST'])
-def processImage():
-    imgName, imgData = saveTempImage(request.json['image'])
+@socketio.on('process_image')
+def processImage(jsonArg):
+    imgName, imgData = saveTempImage(jsonArg['image'].decode('utf-8'))
     output = client.containers.run('openalpr/openalpr', '-c eu -j ' + imgName, remove=True, volumes={getcwd(): {'bind': '/data', 'mode': 'ro'}})
     socketio.emit('new_tag', {'data': json.loads(output), 'img': imgData}, broadcast=True)
     return str(output)
-
-
-@socketio.on('message')
-def handle_message(message):
-    print('received message: ' + message)
 
 
 @socketio.on('json')
@@ -42,6 +37,12 @@ def handle_connect_event(jsonArg):
     print('received json: ' + str(jsonArg))
 
 
+@socketio.on('webResponse')
+def handleWebResponse(data):
+    socketio.emit('access', {'access': data['access']})
+    print(str(data))
+
+
 def saveTempImage(encodedImage):
     meta = encodedImage.split(',')
     imgBase64 = encodedImage
@@ -52,6 +53,8 @@ def saveTempImage(encodedImage):
         imgBase64 = meta[1]
         ext = '.' + meta[0].split(';')[0].split('/')[1]
         imgName += ext
+    else:
+        imgName += '.jpg'
 
     # Decode and save image
     imgdata = base64.b64decode(imgBase64)
@@ -63,4 +66,4 @@ def saveTempImage(encodedImage):
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, host= '0.0.0.0')
