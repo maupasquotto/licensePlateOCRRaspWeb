@@ -18,9 +18,21 @@ def hello_world():
     return render_template('index.html')
 
 
+@app.route('/process_image', methods=['POST'])  # For debugging only
+def ppImage():
+    return processImage(request.json)
+
+
 @socketio.on('process_image')
 def processImage(jsonArg):
-    imgName, imgData = saveTempImage(jsonArg['image'].decode('utf-8'))
+    imgDecoded = ''
+    try:
+        imgDecoded = jsonArg['image']
+        imgDecoded = imgDecoded.decode('utf-8')
+    except Exception:
+        pass
+
+    imgName, imgData = saveTempImage(imgDecoded)
     output = client.containers.run('openalpr/openalpr', '-c eu -j ' + imgName, remove=True, volumes={getcwd(): {'bind': '/data', 'mode': 'ro'}})
     socketio.emit('new_tag', {'data': json.loads(output), 'img': imgData}, broadcast=True)
     return str(output)

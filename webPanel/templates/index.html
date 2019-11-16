@@ -130,8 +130,8 @@
             </div>
             <div class="response">
                 <!-- ko if: mainImage() != "" -->
-                    <div class="btnResponseDiv btnYes w-50" data-bind="click: sendResponse(1)"><span>Yes</span></div>
-                    <div class="btnResponseDiv btnNo w-50" data-bind="click: sendResponse(0)"><span>No</span></div>
+                    <div class="btnResponseDiv btnYes w-50" data-bind="click: function() { sendResponse(1); }"><span>Yes</span></div>
+                    <div class="btnResponseDiv btnNo w-50" data-bind="click: function() { sendResponse(0); }"><span>No</span></div>
                 <!-- /ko -->
             </div>
         </div>
@@ -169,6 +169,12 @@
         tagList: ko.observableArray([]),
         sendResponse: function (resp) {
             socket.emit('webResponse', {access: resp});
+            ViewModel.clear();
+        },
+        clear: function () {
+            ViewModel.mainImage('');
+            ViewModel.mainTag('');
+            ViewModel.tagList([]);
         }
     };
 
