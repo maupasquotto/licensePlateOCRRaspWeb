@@ -33,7 +33,8 @@ def processImage(jsonArg):
         pass
 
     imgName, imgData = saveTempImage(imgDecoded)
-    output = client.containers.run('openalpr/openalpr', '-c eu -j ' + imgName, remove=True, volumes={getcwd(): {'bind': '/data', 'mode': 'ro'}})
+    output = client.containers.run('openalpr/openalpr', '-c eu -j ' + imgName, remove=True,
+                                   volumes={getcwd(): {'bind': '/data', 'mode': 'ro'}})
     socketio.emit('new_tag', {'data': json.loads(output), 'img': imgData}, broadcast=True)
     return str(output)
 
@@ -78,4 +79,4 @@ def saveTempImage(encodedImage):
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, host= '0.0.0.0')
+    socketio.run(app, debug=True, host='0.0.0.0')
